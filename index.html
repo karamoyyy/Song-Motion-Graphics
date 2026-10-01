@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shape of My Heart</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #010101;
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: white;
+        }
+        canvas {
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+        #lyrics-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 2;
+            pointer-events: none;
+        }
+        .lyric-box {
+            position: absolute;
+            bottom: -100px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            background-color: rgba(204, 0, 0, 0.8);
+            padding: 20px 40px;
+            border-radius: 50px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            animation: floatUp 15s linear forwards;
+            white-space: nowrap;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(0) scale(0.8); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-120vh) scale(1); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="particleCanvas"></canvas>
+    <div id="lyrics-container"></div>
+
+    <script>
+        // Lirik dibatasi 4 baris di sini, Anda dapat menambahkan sisa barisnya ke dalam array ini
+        const LYRICS = [
+            "Got nothing to hide no more",
+            "I don't know where to start",
+            "But to show you the shape of my heart",
+            "I'm lookin' back on things I've done"
+        ];
+        
+        const DELAYS = [300, 4000, 9000, 19000];
+        const X_POSITIONS = [30, 60, 30, 50]; // Persentase lebar layar (vw)
+
+        const container = document.getElementById('lyrics-container');
+
+        // Memunculkan Lirik
+        LYRICS.forEach((text, index) => {
+            setTimeout(() => {
+                const box = document.createElement('div');
+                box.className = 'lyric-box';
+                box.style.left = X_POSITIONS[index] + 'vw';
+                
+                // Efek mengetik otomatis (Karaoke style)
+                let charIndex = 0;
+                box.textContent = "";
+                container.appendChild(box);
+
+                const typeInterval = setInterval(() => {
+                    if (charIndex < text.length) {
+                        box.textContent += text.charAt(charIndex);
+                        charIndex++;
+                    } else {
+                        clearInterval(typeInterval);
+                    }
+                }, 100);
+
+            }, DELAYS[index]);
+        });
+
+        // Animasi Partikel Hati di Background
+        const canvas = document.getElementById('particleCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const particles = [];
+        const colors = ["#FFB6C1", "#FFC0CB", "#DC143C", "#FFF0F5", "#FF69B4"];
+
+        function drawHeart(ctx, x, y, size, color) {
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            for (let i = 0; i < Math.PI * 2; i += 0.1) {
+                let hx = 16 * Math.pow(Math.sin(i), 3);
+                let hy = -(13 * Math.cos(i) - 5 * Math.cos(2*i) - 2 * Math.cos(3*i) - Math.cos(4*i));
+                ctx.lineTo(x + (hx * size), y + (hy * size));
+            }
+            ctx.fill();
+        }
+
+        class Particle {
+            constructor() {
+                this.size = Math.random() * 1.5 + 0.5;
+                this.x = Math.random() * canvas.width;
+                this.y = canvas.height + 20;
+                this.speedY = Math.random() * 2 + 1;
+                this.speedX = (Math.random() - 0.5) * 1;
+                this.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            update() {
+                this.y -= this.speedY;
+                this.x += this.speedX;
+            }
+            draw() {
+                drawHeart(ctx, this.x, this.y, this.size, this.color);
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (Math.random() < 0.05) particles.push(new Particle());
+            
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update();
+                particles[i].draw();
+                if (particles[i].y < -50) {
+                    particles.splice(i, 1);
+                    i--;
+                }
+            }
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+    </script>
+</body>
+</html>
